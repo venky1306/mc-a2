@@ -4,13 +4,13 @@
 #include <thread>
 #include <chrono>
 #include <random>
+#include <string>
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 typedef std::chrono::milliseconds milliseconds;
 typedef std::chrono::nanoseconds nanoseconds;
 
 using namespace std;
-
 
 template<typename T>
 T random(T range_from, T range_to) {
@@ -126,7 +126,7 @@ public:
     
             // Find successor
             Node* succ = curr->right;
-            while (curr->left != NULL) {
+            while (succ->left != NULL) {
                 succParent = succ;
                 succ = succ->left;
             }
@@ -157,80 +157,91 @@ public:
     }
 };
 
+std::atomic<std::uint64_t> cnt;
 
-void testBST(int numvals){
-    BST tree;
-    for(int i = 0; i< numvals; i++){
-        tree.insert((i*71)%numvals);
-        if(i% 1000000 == 0){
-            printf("%d\n",i);
-        }
-    }
+// void testBST(int numvals){
+//     BST tree;
+//     for(int i = 0; i< numvals; i++){
+//         tree.insert((i*71)%numvals);
+//         if(i% 1000000 == 0){
+//             printf("%d\n",i);
+//         }
+//     }
+//     for(int i = 0; i< numvals; i++){
+//         bool x= tree.remove(i);
+//         if(!x){
+//             throw("Failed impl");
+//         }
+//     }
+// }
 
-
-
-    for(int i = 0; i< numvals; i++){
-        bool x= tree.remove(i);
-        if(!x){
-            throw("Failed impl");
-        }
-    }
-}
-
-void readth(BST &tree, int numvals, int weight)
+void readth(BST &tree, int keyspace)
 {
-    for (int j = 0; j < weight; j++)
-    {
-        for (int i = 0; i < numvals; i++)
-        {
-            tree.search((71 * i) % numvals);
-        }
-    }
+    tree.search(random(1, keyspace));
 }
-void writeth(BST &tree, int numvals, int weight)
+void writeth(BST &tree, int keyspace)
 {
-    for (int j = 0; j < weight; j++)
-    {
+    tree.insert(random(1, keyspace));
+}
+void removeth(BST &tree, int keyspace) 
+{
+    tree.remove(random(1, keyspace));
+}
 
-        for (int i = 0; i < numvals; i++)
-        {
-            tree.insert((71 * i) % numvals);
+void thread_read_dominated(BST &tree, int keyspace){ 
+    while(cnt.load() > 0) {
+        cnt--;
+        int r = random(1,100);
+        if(r < 91) {
+            readth(tree, keyspace);
+        }else if(r < 96){
+            writeth(tree, keyspace);
+        }else {
+            removeth(tree, keyspace);
         }
     }
 }
 
-void randomthread(BST &tree, int numvals, int weight){ 
-    int r = random(1,10);
-    if(r < 10) {
-        readth(tree,numvals,weight);
-    }else{
-        writeth(tree,numvals,weight);
+void thread_write_dominated(BST &tree, int keyspace){ 
+    while(cnt.load() > 0) {
+        cnt--;
+        int r = random(1,100);
+        if(r < 91) {
+            readth(tree, keyspace);
+        }else if(r < 96){
+            writeth(tree, keyspace);
+        }else {
+            removeth(tree, keyspace);
+        }
     }
 }
 
-void testBSTMT(int numvals, int readthreads, int writethreads){
+void testBSTMT(int numthreads, int keyspace, string workload){
     BST tree;
     std::vector< std:: thread> vth;
-    for(int i = 0; i< writethreads;i++){
-       // std::thread t(writeth, std::ref(tree), numvals);
-        vth.emplace_back(randomthread, std::ref(tree), numvals,1);
+
+    if(workload == "read-dominated") {
+        for(int i = 0; i< numthreads;i++){
+            vth.emplace_back(thread_read_dominated, std::ref(tree), keyspace);
+        }
     }
-    for(int i = 0; i< readthreads;i++){
-        //std::thread t(readth, std::ref(tree), numvals);
-        vth.emplace_back(randomthread, std::ref(tree), numvals,1);
+    else {
+        for(int i = 0; i< numthreads;i++){
+            vth.emplace_back(thread_write_dominated, std::ref(tree), keyspace);
+        }
     }
-    
-    for(int i = 0; i< vth.size();i++){
+    for(int i = 0; i< numthreads;i++){
         vth[i].join();
     }
 }
 
-void runexperiment(int iterations,int numvals,int readthreads, int writethreads){
+void runexperiment(int iterations, int numthreads, int keyspace, string workload){
     
     time_point start_time = std::chrono::high_resolution_clock::now();
     for(int i = 0; i <iterations ; i++){
+        cnt.store(10000000);
     
-        testBSTMT((i+1)*numvals,readthreads,writethreads);
+        testBSTMT(numthreads, keyspace, workload);
     }
     time_point end_time = std::chrono::high_resolution_clock::now();
     milliseconds duration = std::chrono::duration_cast<milliseconds>(end_time - start_time);
@@ -238,9 +249,11 @@ void runexperiment(int iterations,int numvals,int readthreads, int writethreads)
 
 }
 
-// }
-
 int main() {
-    runexperiment(100, 10000, 2, 2);
-    return 1;
+    int numthreads = 8;
+    int iterations = 10;
+    int keyspace = 100;
+    runexperiment(iterations, numthreads, keyspace, "read-dominated");
+    runexperiment(iterations, numthreads, keyspace, "write-dominated");
+    return 0;
 }
