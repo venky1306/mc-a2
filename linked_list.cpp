@@ -4,8 +4,22 @@
 #include <thread>
 #include <chrono>
 #include <random>
+#include <string>
+#include <atomic>
+
+typedef std::chrono::high_resolution_clock::time_point time_point;
+typedef std::chrono::milliseconds milliseconds;
+typedef std::chrono::nanoseconds nanoseconds;
 
 using namespace std;
+
+template<typename T>
+T random(T range_from, T range_to) {
+    std::random_device                  rand_dev;
+    std::mt19937                        generator(rand_dev());
+    std::uniform_int_distribution<T>    distr(range_from, range_to);
+    return distr(generator);
+}
 
 struct Node {
     int key;
@@ -27,48 +41,53 @@ public:
         unique_lock lock(mutex_);
         Node* newNode = new Node(key);
 
-        if(!head || key<head->key) {
+        if (head == nullptr || head->key > newNode->key) {
             newNode->next = head;
             head = newNode;
-            return true;
         }
-
-        Node* curr = head;
-        while(curr->next || curr->next->key < key) {
-            curr = curr->next;
+        else {
+            Node* current = head;
+            while (current->next != nullptr && current->next->key < newNode->key) {
+                current = current->next;
+            }
+            newNode->next = current->next;
+            current->next = newNode;
         }
-        newNode->next = curr->next;
-        curr->next = newNode;
         return true;
     }
 
     bool search(int key) {
         shared_lock lock(mutex_);
         Node* curr = head;
-        while(curr && curr->key <= key) {
-            if(curr->key == key) return true;
+        while (curr != nullptr) {
+            if (curr->key == key)
+                return true; // Key found
             curr = curr->next;
         }
         return false;
-
     }
 
     bool remove(int key) {
         if(!search(key)) return false;
         unique_lock lock(mutex_);
-
+        
         Node* curr = head;
-        if(curr->key == key) {
+        Node* prev = nullptr;
+        if(curr !=nullptr && curr->key == key) {
+            head = head->next;
             delete curr;
-            head = nullptr;
             return true;
         }
-        while(curr->next->key != key) {
+        
+        while (curr != nullptr && curr->key != key) {
+            prev = curr;
             curr = curr->next;
         }
-        Node* temp = curr->next;
-        curr->next = curr->next->next;
-        delete temp;
+        if (curr == nullptr) {
+            return false; 
+        }
+        prev->next = curr->next;
+        delete curr;
         return true;
     }
 
@@ -82,28 +101,100 @@ public:
     }
 };
 
-template<typename T>
-T random(T range_from, T range_to) {
-    std::random_device                  rand_dev;
-    std::mt19937                        generator(rand_dev());
-    std::uniform_int_distribution<T>    distr(range_from, range_to);
-    return distr(generator);
+std::atomic<std::uint64_t> cnt;
+
+// void testLinkedList(int numvals){
+//     LinkedList ll;
+//     for(int i = 0; i< numvals; i++){
+//         ll.insert((i*71)%numvals);
+//         if(i% 1000000 == 0){
+//             printf("%d\n",i);
+//         }
+//     }
+//     for(int i = 0; i< numvals; i++){
+//         bool x= ll.remove(i);
+//         if(!x){
+//             throw("Failed impl");
+//         }
+//     }
+// }
+
+void readth(LinkedList &ll, int keyspace)
+{
+    ll.search(random(1, keyspace));
+}
+void writeth(LinkedList &ll, int keyspace)
+{
+    ll.insert(random(1, keyspace));
+}
+void removeth(LinkedList &ll, int keyspace) 
+{
+    ll.remove(random(1, keyspace));
 }
 
+void thread_read_dominated(LinkedList &ll, int keyspace){ 
+    while(cnt.load() <= 10000) {
+        cnt++;
+        int r = random(1,100);
+        if(r < 91) {
+            readth(ll, keyspace);
+        }else if(r < 96){
+            writeth(ll, keyspace);
+        }else {
+            removeth(ll, keyspace);
+        }
+    }
+}
 
+void thread_write_dominated(LinkedList &ll, int keyspace){ 
+    while(cnt.load() <= 10000) {
+        cnt++;
+        int r = random(1,100);
+        if(r < 51){
+            writeth(ll, keyspace);
+        }else {
+            removeth(ll, keyspace);
+        }
+    }
+}
+
+void testLinkedListMT(int numthreads, int keyspace, string workload){
+    LinkedList ll;
+    std::vector< std:: thread> vth;
+
+    if(workload == "read-dominated") {
+        for(int i = 0; i< numthreads;i++){
+            vth.emplace_back(thread_read_dominated, std::ref(ll), keyspace);
+        }
+    }
+    else {
+        for(int i = 0; i< numthreads;i++){
+            vth.emplace_back(thread_write_dominated, std::ref(ll), keyspace);
+        }
+    }
+    for(int i = 0; i< numthreads;i++){
+        vth[i].join();
+    }
+}
+
+void runexperiment(int iterations, int numthreads, int keyspace, string workload){
+    
+    time_point start_time = std::chrono::high_resolution_clock::now();
+    for(int i = 0; i <iterations ; i++){
+        cnt.store(0);
+    
+        testLinkedListMT(numthreads, keyspace, workload);
+    }
+    time_point end_time = std::chrono::high_resolution_clock::now();
+    milliseconds duration = std::chrono::duration_cast<milliseconds>(end_time - start_time);
+    cout << duration.count()/iterations << endl;
+}
 
 int main() {
-    LinkedList ll;
-    ll.insert(4);
-    cout << ll.search(3) << '\n';
-    
-    const int Operations = 100000;
-    const int numThreads = thread::hardware_concurrency();
-    const int OpsEachThread = Operations/numThreads;
-    const int KeySpace1 = 100;
-    const int KeySpace2 = 10000;
-
-
-    cout << random(0,10);
-
+    int numthreads = 8;
+    int iterations = 1000;
+    int keyspace = 100;
+    runexperiment(iterations, numthreads, keyspace, "read-dominated");
+    runexperiment(iterations, numthreads, keyspace, "write-dominated");
+    return 0;
 }

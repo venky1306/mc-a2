@@ -5,6 +5,7 @@
 #include <chrono>
 #include <random>
 #include <string>
+#include <atomic>
 
 typedef std::chrono::high_resolution_clock::time_point time_point;
 typedef std::chrono::milliseconds milliseconds;
@@ -189,8 +190,8 @@ void removeth(BST &tree, int keyspace)
 }
 
 void thread_read_dominated(BST &tree, int keyspace){ 
-    while(cnt.load() > 0) {
-        cnt--;
+    while(cnt.load() < 1000) {
+        cnt++;
         int r = random(1,100);
         if(r < 91) {
             readth(tree, keyspace);
@@ -203,12 +204,10 @@ void thread_read_dominated(BST &tree, int keyspace){
 }
 
 void thread_write_dominated(BST &tree, int keyspace){ 
-    while(cnt.load() > 0) {
-        cnt--;
+    while(cnt.load() < 1000) {
+        cnt++;
         int r = random(1,100);
-        if(r < 91) {
-            readth(tree, keyspace);
-        }else if(r < 96){
+        if(r < 51){
             writeth(tree, keyspace);
         }else {
             removeth(tree, keyspace);
@@ -239,7 +238,7 @@ void runexperiment(int iterations, int numthreads, int keyspace, string workload
     
     time_point start_time = std::chrono::high_resolution_clock::now();
     for(int i = 0; i <iterations ; i++){
-        cnt.store(10000000);
+        cnt.store(0);
     
         testBSTMT(numthreads, keyspace, workload);
     }
@@ -251,9 +250,9 @@ void runexperiment(int iterations, int numthreads, int keyspace, string workload
 
 int main() {
     int numthreads = 8;
-    int iterations = 10;
+    int iterations = 1000;
     int keyspace = 100;
     runexperiment(iterations, numthreads, keyspace, "read-dominated");
-    runexperiment(iterations, numthreads, keyspace, "write-dominated");
+    // runexperiment(iterations, numthreads, keyspace, "write-dominated");
     return 0;
 }
