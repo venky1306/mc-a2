@@ -68,7 +68,7 @@ public:
     }
 
     bool search(int key) {
-        shared_lock lock(mutex_);
+        unique_lock lock(mutex_);
         
         Node* curr = root;
         while(curr) {
@@ -189,8 +189,10 @@ void removeth(BST &tree, int keyspace)
     tree.remove(random(1, keyspace));
 }
 
+const int operations = 100000;
+
 void thread_read_dominated(BST &tree, int keyspace){ 
-    while(cnt.load() < 1000) {
+    while(cnt.load() < operations) {
         cnt++;
         int r = random(1,100);
         if(r < 91) {
@@ -204,7 +206,7 @@ void thread_read_dominated(BST &tree, int keyspace){
 }
 
 void thread_write_dominated(BST &tree, int keyspace){ 
-    while(cnt.load() < 1000) {
+    while(cnt.load() < operations) {
         cnt++;
         int r = random(1,100);
         if(r < 51){
@@ -244,15 +246,39 @@ void runexperiment(int iterations, int numthreads, int keyspace, string workload
     }
     time_point end_time = std::chrono::high_resolution_clock::now();
     milliseconds duration = std::chrono::duration_cast<milliseconds>(end_time - start_time);
-    cout << duration.count()/iterations << endl;
+    cout << duration.count()/iterations << "ms.\n";
 
 }
 
 int main() {
     int numthreads = 8;
-    int iterations = 1000;
+    int iterations = 10;
     int keyspace = 100;
-    runexperiment(iterations, numthreads, keyspace, "read-dominated");
-    // runexperiment(iterations, numthreads, keyspace, "write-dominated");
+    cout << "Concurrent Binary Search Tree.\n";
+    cout << "1. Key Space of 100.\n";
+    cout << "   ----------Read Dominated Workload----------" << '\n';
+    for(int i=1;i<=numthreads;i++) {
+        cout << i << "  number of concurrent threads for 100000 operations took ";
+        runexperiment(iterations, i, keyspace, "read-dominated");
+    }
+        
+    cout << "   ----------Write Dominated Workload----------" << '\n';
+    for(int i=1;i<=numthreads;i++) {
+        cout << i << "   number of concurrent threads for 100000 operations took ";
+        runexperiment(iterations, i, keyspace, "write-dominated");
+    }
+    keyspace = 10000;
+    cout << "\n2. Key Space of 10000.";
+    cout << "   ----------Read Dominated Workload----------" << '\n';
+    for(int i=1;i<=numthreads;i++) {
+        cout << i << "  number of concurrent threads for 100000 operations took ";
+        runexperiment(iterations, i, keyspace, "read-dominated");
+    }
+        
+    cout << "   ----------Write Dominated Workload----------" << '\n';
+    for(int i=1;i<=numthreads;i++) {
+        cout << i << "  number of concurrent threads for 100000 operations took ";
+        runexperiment(iterations, i, keyspace, "write-dominated");
+    }
     return 0;
 }
