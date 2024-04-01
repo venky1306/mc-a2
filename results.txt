@@ -1,0 +1,80 @@
+Concurrent Linked List.
+1. Key Space of 100.
+   ----------Read Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 716ms.
+2  number of concurrent threads for 100000 operations took 378ms.
+3  number of concurrent threads for 100000 operations took 266ms.
+4  number of concurrent threads for 100000 operations took 210ms.
+5  number of concurrent threads for 100000 operations took 225ms.
+6  number of concurrent threads for 100000 operations took 231ms.
+7  number of concurrent threads for 100000 operations took 231ms.
+8  number of concurrent threads for 100000 operations took 231ms.
+   ----------Write Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 720ms.
+2  number of concurrent threads for 100000 operations took 383ms.
+3  number of concurrent threads for 100000 operations took 265ms.
+4  number of concurrent threads for 100000 operations took 221ms.
+5  number of concurrent threads for 100000 operations took 303ms.
+6  number of concurrent threads for 100000 operations took 334ms.
+7  number of concurrent threads for 100000 operations took 342ms.
+8  number of concurrent threads for 100000 operations took 358ms.
+
+2. Key Space of 10000.
+   ----------Read Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 1130ms.
+2  number of concurrent threads for 100000 operations took 647ms.
+3  number of concurrent threads for 100000 operations took 510ms.
+4  number of concurrent threads for 100000 operations took 458ms.
+5  number of concurrent threads for 100000 operations took 455ms.
+6  number of concurrent threads for 100000 operations took 463ms.
+7  number of concurrent threads for 100000 operations took 467ms.
+8  number of concurrent threads for 100000 operations took 469ms.
+   ----------Write Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 1429ms.
+2  number of concurrent threads for 100000 operations took 1427ms.
+3  number of concurrent threads for 100000 operations took 1451ms.
+4  number of concurrent threads for 100000 operations took 1442ms.
+5  number of concurrent threads for 100000 operations took 1490ms.
+6  number of concurrent threads for 100000 operations took 1484ms.
+7  number of concurrent threads for 100000 operations took 1500ms.
+8  number of concurrent threads for 100000 operations took 1491ms.
+
+Concurrent Binary Search Tree.
+1. Key Space of 100.
+   ----------Read Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 714ms.
+2  number of concurrent threads for 100000 operations took 371ms.
+3  number of concurrent threads for 100000 operations took 257ms.
+4  number of concurrent threads for 100000 operations took 197ms.
+5  number of concurrent threads for 100000 operations took 261ms.
+6  number of concurrent threads for 100000 operations took 274ms.
+7  number of concurrent threads for 100000 operations took 286ms.
+8  number of concurrent threads for 100000 operations took 304ms.
+   ----------Write Dominated Workload----------
+1   number of concurrent threads for 100000 operations took 723ms.
+2   number of concurrent threads for 100000 operations took 376ms.
+3   number of concurrent threads for 100000 operations took 263ms.
+4   number of concurrent threads for 100000 operations took 210ms.
+5   number of concurrent threads for 100000 operations took 310ms.
+6   number of concurrent threads for 100000 operations took 350ms.
+7   number of concurrent threads for 100000 operations took 379ms.
+8   number of concurrent threads for 100000 operations took 413ms.
+
+2. Key Space of 10000.   ----------Read Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 721ms.
+2  number of concurrent threads for 100000 operations took 373ms.
+3  number of concurrent threads for 100000 operations took 261ms.
+4  number of concurrent threads for 100000 operations took 205ms.
+5  number of concurrent threads for 100000 operations took 288ms.
+6  number of concurrent threads for 100000 operations took 310ms.
+7  number of concurrent threads for 100000 operations took 331ms.
+8  number of concurrent threads for 100000 operations took 350ms.
+   ----------Write Dominated Workload----------
+1  number of concurrent threads for 100000 operations took 732ms.
+2  number of concurrent threads for 100000 operations took 381ms.
+3  number of concurrent threads for 100000 operations took 270ms.
+4  number of concurrent threads for 100000 operations took 218ms.
+5  number of concurrent threads for 100000 operations took 351ms.
+6  number of concurrent threads for 100000 operations took 408ms.
+7  number of concurrent threads for 100000 operations took 434ms.
+8  number of concurrent threads for 100000 operations took 468ms.
