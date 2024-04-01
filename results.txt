@@ -39,6 +39,7 @@ Concurrent Linked List.
 7  number of concurrent threads for 100000 operations took 1500ms.
 8  number of concurrent threads for 100000 operations took 1491ms.
 
+
 Concurrent Binary Search Tree.
 1. Key Space of 100.
    ----------Read Dominated Workload----------
@@ -78,3 +79,14 @@ Concurrent Binary Search Tree.
 6  number of concurrent threads for 100000 operations took 408ms.
 7  number of concurrent threads for 100000 operations took 434ms.
 8  number of concurrent threads for 100000 operations took 468ms.
+
+
+Concurrent Stack.
+1  number of concurrent threads for 100000 operations took 540ms.
+2  number of concurrent threads for 100000 operations took 283ms.
+3  number of concurrent threads for 100000 operations took 207ms.
+4  number of concurrent threads for 100000 operations took 176ms.
+5  number of concurrent threads for 100000 operations took 231ms.
+6  number of concurrent threads for 100000 operations took 257ms.
+7  number of concurrent threads for 100000 operations took 274ms.
+8  number of concurrent threads for 100000 operations took 292ms.
